@@ -16,8 +16,7 @@ import {Switch} from '../switch'
 
 // 🐨 create a function called `useToggle` and move all the toggle logic to
 // that function then call `useToggle` in the Toggle function.
-
-function Toggle({onToggle}) {
+const useToggle = ({onToggle}) => {
   const [on, setOn] = React.useState(false)
 
   function toggle() {
@@ -26,6 +25,11 @@ function Toggle({onToggle}) {
     onToggle(newOn)
   }
 
+  return [on, toggle]
+}
+
+function Toggle({onToggle}) {
+  const [on, toggle] = useToggle({onToggle})
   return <Switch on={on} onClick={toggle} />
 }
 
