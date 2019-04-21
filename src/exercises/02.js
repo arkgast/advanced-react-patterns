@@ -30,7 +30,7 @@ import {Switch} from '../switch'
 // Since we're no longer responsible for rendering the switch ourselves,
 // we'll need to accept a `children` prop and render that instead.
 // 🐨 add `children` to the props destructuring here
-function Toggle({onToggle}) {
+function Toggle({children, onToggle}) {
   const [on, setOn] = React.useState(false)
 
   function toggle() {
@@ -44,19 +44,24 @@ function Toggle({onToggle}) {
   // 💰 React.Children.map(children, child => {/* return child clone here */})
   // 📜 https://reactjs.org/docs/react-api.html#reactchildren
   // 📜 https://reactjs.org/docs/react-api.html#cloneelement
-  return <Switch on={on} onClick={toggle} />
+  return React.Children.map(children, childElement =>
+    React.cloneElement(childElement, {
+      on,
+      toggle,
+    }),
+  )
 }
 
 // 🐨 add a property on Toggle for On, Off, and Button:
 
 // Accepts `on` and `children` props and returns `children` if `on` is true
-Toggle.On = () => null
+Toggle.On = ({on, children}) => (on ? children : null)
 
 // Accepts `on` and `children` props and returns `children` if `on` is false
-Toggle.Off = () => null
+Toggle.Off = ({on, children}) => (on ? null : children)
 
 // Accepts `on` and `toggle` props and returns the <Switch /> with those props.
-Toggle.Button = () => null
+Toggle.Button = ({on, toggle}) => <Switch on={on} onClick={toggle} />
 
 // 💯 Support rendering non-Toggle components within Toggle without incurring warnings in the console.
 // for example, try to render a <span>Hello</span> inside <Toggle />
