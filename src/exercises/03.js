@@ -34,18 +34,7 @@ import {Switch} from '../switch'
 
 // 🐨 create your ToggleContext context here
 // 📜 https://reactjs.org/docs/context.html#reactcreatecontext
-
-// 🐨 remove this, you wont need it anymore! 💣
-function componentHasChild(child) {
-  for (const property in Toggle) {
-    if (Toggle.hasOwnProperty(property)) {
-      if (child.type === Toggle[property]) {
-        return true
-      }
-    }
-  }
-  return false
-}
+const ToggleContext = React.createContext(null)
 
 function Toggle({onToggle, children}) {
   const [on, setOn] = React.useState(false)
@@ -58,11 +47,11 @@ function Toggle({onToggle, children}) {
 
   // 🐨 remove all this 💣 and instead return <ToggleContext.Provider> where
   // the value is an object that has `on` and `toggle` on it.
-  return React.Children.map(children, child => {
-    return componentHasChild(child)
-      ? React.cloneElement(child, {on, toggle})
-      : child
-  })
+  return (
+    <ToggleContext.Provider value={{on, toggle}}>
+      {children}
+    </ToggleContext.Provider>
+  )
 }
 
 // 🐨 we'll still get the children from props (as it's passed to us by the
@@ -71,17 +60,20 @@ function Toggle({onToggle, children}) {
 // 💰 `const context = useContext(ToggleContext)`
 // 📜 https://reactjs.org/docs/hooks-reference.html#usecontext
 Toggle.On = function On({on, children}) {
-  return on ? children : null
+  const context = React.useContext(ToggleContext)
+  return context.on ? children : null
 }
 
 // 🐨 do the same thing to this that you did to the On component
 Toggle.Off = function Off({on, children}) {
-  return on ? null : children
+  const context = React.useContext(ToggleContext)
+  return context.on ? null : children
 }
 
 // 🐨 get `on` and `toggle` from the ToggleContext with `useContext`
-Toggle.Button = function Button({on, toggle, ...props}) {
-  return <Switch on={on} onClick={toggle} {...props} />
+Toggle.Button = function Button({...props}) {
+  const context = React.useContext(ToggleContext)
+  return <Switch on={context.on} onClick={context.toggle} {...props} />
 }
 
 // 💯 Comment out the Usage function below, and use this one instead:
@@ -100,7 +92,9 @@ function Usage() {
   return (
     <div>
       <Toggle onToggle={(...args) => console.info('onToggle', ...args)}>
-        <Toggle.On>The button is on</Toggle.On>
+        <div>
+          <Toggle.On>The button is on</Toggle.On>
+        </div>
         <Toggle.Off>The button is off</Toggle.Off>
         <div>
           <Toggle.Button />
