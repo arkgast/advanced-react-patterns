@@ -36,10 +36,10 @@ function useToggle({
   // be called any time any of our elements of state changes.
   // 🐨 remove `onToggle` and `onReset` and replace them with an `onChange`
   // 💰 you can default onChange to noop as well
-  onToggle = noop,
-  onReset = noop,
+  onChange = noop,
   initialOn = false,
   reducer = toggleReducer,
+  on: controlledOn,
   // 🐨 add an `on` option here
   // 💰 you can alias it to `controlledOn` to avoid "variable shadowing."
 } = {}) {
@@ -47,10 +47,11 @@ function useToggle({
   const [state, dispatch] = React.useReducer(reducer, initialState)
   // 🐨 determined whether on is controlled and assign that to `onIsControlled`
   // 💰 `controlledOn !== undefined`
+  const onIsControlled = controlledOn !== undefined
 
   // 🐨 Replace the next line with assigning `on` to `controlledOn` if
   // `onIsControlled`, otherwise, it should be `state.on`.
-  const {on} = state
+  const on = onIsControlled ? controlledOn : state.on
 
   // We want to call `onChange` any time we need to make a state change, but we
   // only want to call `dispatch` if `!onIsControlled` (otherwise we could get
@@ -60,6 +61,11 @@ function useToggle({
   // 1. accept an action
   // 2. call dispatch with that action, but only if `!onIsControlled`
   // 3. call `onChange` with our "suggested changes" and the action.
+
+  const dispatchWithOnChange = action => {
+    dispatch(action)
+    onChange(reducer({...state, on}, action), action)
+  }
 
   // 🦉 "Suggested changes" refers to: the changes we would make if we were
   // managing the state ourselves. This is similar to how a controlled <input />
@@ -76,15 +82,12 @@ function useToggle({
 
   function toggle() {
     // 🐨 instead of all this, we can now just call our `dispatchWithOnChange`
-    const newOn = !on
-    dispatch({type: useToggle.types.toggle})
-    onToggle(newOn)
+    dispatchWithOnChange({type: useToggle.types.toggle})
   }
 
   function reset() {
     // 🐨 instead of all this, we can now just call our `dispatchWithOnChange`
-    dispatch({type: useToggle.types.reset, initialState})
-    onReset(initialOn)
+    dispatchWithOnChange({type: useToggle.types.reset, initialState})
   }
 
   function getTogglerProps({onClick, ...props} = {}) {
