@@ -41,12 +41,17 @@ function toggleReducer(state, {type, initialState}) {
 }
 
 // 🐨 add a new option called `reducer` that defaults to `toggleReducer`
-function useToggle({onToggle = noop, onReset = noop, initialOn = false} = {}) {
+function useToggle({
+  onToggle = noop,
+  onReset = noop,
+  initialOn = false,
+  reducer = toggleReducer,
+} = {}) {
   const {current: initialState} = React.useRef({on: initialOn})
   // 🐨 instead of passing `toggleReducer` here, pass the `reducer` that's
   // provided as an option
   // ... and that's it! Don't forget to check the 💯 extra credit below!
-  const [state, dispatch] = React.useReducer(toggleReducer, initialState)
+  const [state, dispatch] = React.useReducer(reducer, initialState)
   const {on} = state
 
   function toggle() {
@@ -74,6 +79,12 @@ function useToggle({onToggle = noop, onReset = noop, initialOn = false} = {}) {
     toggle,
     getTogglerProps,
   }
+}
+
+useToggle.reducer = toggleReducer
+useToggle.types = {
+  toggle: 'toggle',
+  reset: 'reset',
 }
 
 // 💯 Our `toggleReducer` is pretty simple, so it's not a huge pain for people
@@ -112,20 +123,10 @@ function Usage() {
   function toggleStateReducer(state, action) {
     // 💯 I, Hannah Hundred, give you permission to edit this function for
     // the extra credit outlined above. 😘
-    switch (action.type) {
-      case 'toggle': {
-        if (timesClicked >= 4) {
-          return {on: state.on}
-        }
-        return {on: !state.on}
-      }
-      case 'reset': {
-        return {on: false}
-      }
-      default: {
-        throw new Error(`Unsupported type: ${action.type}`)
-      }
+    if (action.type === useToggle.types.toggle && timesClicked >= 4) {
+      return {on: state.on}
     }
+    return useToggle.reducer(state, action)
   }
 
   const {on, getTogglerProps, reset} = useToggle({
